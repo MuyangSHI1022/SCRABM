@@ -3,9 +3,13 @@ import numpy.random as rnd
 import math
 
 #随机赋各项权重，后期可以根据结果具体进行调参
-alpha_D = 0.5
-alpha_P = 0.2
-alpha_S = 0.05
+# alpha_D = 0.5
+# alpha_P = 0.2
+# alpha_S = 0.05
+
+alpha_D = rnd.random()
+alpha_P = rnd.random()
+alpha_S = rnd.random()
 
 x_policy = [1]
 y_policy = [10]
@@ -24,9 +28,9 @@ class Leader:
 
     #计算领导人的效用函数
     def distance_preference_policy(self, x_pol, y_pol):
-        x = self.preference[0] - x_pol[0]
-        y = self.preference[1] - y_pol[0]
-        D = math.sqrt(self.salience_issue[0] * x**2 + self.salience_issue[1] * y**2) 
+        x = self.traits[0] - x_pol[0]
+        y = self.traits[1] - y_pol[0]
+        D = math.sqrt(self.traits[2] * x**2 + self.traits[3] * y**2) 
         return D
     def power_total(self):
         P = self.influence[0] + self.influence[1]
@@ -48,28 +52,14 @@ class Leader:
     #重新分配权力
     #要么将其中一个agent撤职并换成另一个agent
     def fire_and_hire(self, Tier_fire, Tier_hire):
-        status_fire = Tier_fire.status
-        i_fire = Tier_fire.influence[0]
-        r_fire = Tier_fire.influence[1]
-
         Tier_fire.status = 3
         Tier_fire.influence[0] = rnd.uniform(0.67,1)
         Tier_fire.influence[1] = rnd.uniform(0,0.33)
 
-        Tier_hire.status = status_fire
-        Tier_hire.influence[0] = i_fire
-        Tier_hire.influence[1] = r_fire
+        Tier_hire.status = 2
+        Tier_hire.influence[0] = rnd.uniform(0.33, 0.67)
+        Tier_hire.influence[1] = rnd.uniform(0.33, 0.67)
 
-    #要么将其中一个agent降职
-    def demote(self, Tier_demote):
-        if Tier_demote.status == 1:
-            Tier_demote.status = 2
-            Tier_demote.influence[0] = rnd.uniform(0.33,0.67)
-            Tier_demote.influence[1] = rnd.uniform(0.33,0.67)
-        elif Tier_demote.status == 2:
-            Tier_demote.status = 3
-            Tier_demote.influence[0] = rnd.uniform(0.67,1)
-            Tier_demote.influence[1] = rnd.uniform(0,0.33)
     
     #新继任者上位替换旧领导人
     def sucession(self, scenario):
@@ -103,22 +93,22 @@ class Tier:
         y = self.preference[1] - y_policy[0]
         D = math.sqrt(self.salience_issue[0] * x**2 + self.salience_issue[1] * y**2) 
         P = self.influence[0] + self.influence[1]
-        return alpha_D * (15-D) + alpha_P * P
+        return alpha_D * (D) + alpha_P * P
     
-    #计算agent自身对当前政权政策的支持 power_weighted?
+    #计算agent自身对当前政权政策的支持
     def support(self):
         x = self.preference[0] - x_policy[0]
         y = self.preference[1] - y_policy[0]
-        #这里还是应该用[10-x]比较好，这样增加power确实可以增加support
-        #support = math.sqrt(self.influence[0] * (10-x)**2 + self.influence[1] * (10-y)**2) 
-        support = math.sqrt(self.influence[0] * (x)**2 + self.influence[1] * (y)**2) 
+        support = math.sqrt(self.influence[0] * (10-x)**2 + self.influence[1] * (10-y)**2) 
         return support
     
     #外部冲击以一定概率改变i_power
     def shock(self):
         p = rnd.random()
         if p > 0.5:
-            value = rnd.uniform(0, 0.1)
+            value = rnd.uniform(0, 0.02)
             if self.influence[0] - value > 0:
                 self.influence[0] -= value
+        else:
+            self.influence[0] += rnd.uniform(0, 0.02)
 

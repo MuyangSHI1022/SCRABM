@@ -4,32 +4,24 @@ from utils import *
 import sys 
 sys.setrecursionlimit(1000000000)
 
-#实验1开始
-print(alpha_D, alpha_P, alpha_S)
-'''初始化一些变量'''
+'''实验1开始, 初始化一些变量'''
 #智能体特性 [对政策x的偏好，对政策y的偏好，对政策x的显著性权重，对政策y的显著性权重]
-# traits = [rnd.randint(0,10), rnd.randint(0,10),rnd.random() , rnd.random()]
-#智能体权力，[i_power, r_power] Tier1:[low, high] Tier2:[normal,normal] Tier3:[high,low]
-# influence_tier1 = [rnd.uniform(0, 0.33), rnd.uniform(0.67, 1)]
-# influence_tier2 = [rnd.uniform(0.33,0.67), rnd.uniform(0.33,0.67)]
-# influence_tier3 = [rnd.uniform(0.67,1), rnd.uniform(0,0.33)]
-
-
+alpha_x = rnd.random()
+alpha_y = rnd.random()
 #实例化：{1个leader}, {2个tier1，3个tier(formal positions)，5个tier3(elites)}
-# leader = Leader([10, 10, rnd.random(), rnd.random()], 1, [1,1], 0, 1)
+leader = Leader([10, 10, alpha_x, alpha_y], 1, [1,1], 0, 1)
 
-# tier1_1 = Tier(1, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [rnd.uniform(0, 0.33), rnd.uniform(0.67, 1)])
-# tier1_2 = Tier(2, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [rnd.uniform(0, 0.33), rnd.uniform(0.67, 1)])
+tier1_1 = Tier(1, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [rnd.uniform(0, 0.33), rnd.uniform(0.67, 1)])
+tier1_2 = Tier(2, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [rnd.uniform(0, 0.33), rnd.uniform(0.67, 1)])
 
-#实验B
-leader = Leader([10, 10, rnd.random(), rnd.random()], 1, [2,1], 0, 1)
+#实验2
+# leader = Leader([10, 10, rnd.random(), rnd.random()], 1, [2,1], 0, 1)
+# tier1_1 = Tier(1, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [1, 0.5])
+# tier1_2 = Tier(2, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [1, 0.5])
 
-tier1_1 = Tier(1, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [1, 0.5])
-tier1_2 = Tier(2, [rnd.uniform(6,9), rnd.uniform(6,9), rnd.random(), rnd.random()], 1, [1, 0.5])
-
-tier2_1 = Tier(3, [rnd.uniform(0,5), rnd.randint(0,5), rnd.random(), rnd.random()], 2, [rnd.uniform(0.33,0.67), rnd.uniform(0.33,0.67)])
-tier2_2 = Tier(4, [rnd.uniform(0,5), rnd.randint(0,5), rnd.random(), rnd.random()], 2, [rnd.uniform(0.33,0.67), rnd.uniform(0.33,0.67)])
-tier2_3 = Tier(5, [rnd.uniform(0,5), rnd.randint(0,5), rnd.random(), rnd.random()], 2, [rnd.uniform(0.33,0.67), rnd.uniform(0.33,0.67)])
+tier2_1 = Tier(3, [rnd.uniform(0,5), rnd.uniform(0,5), rnd.random(), rnd.random()], 2, [rnd.uniform(0.33,0.67), rnd.uniform(0.33,0.67)])
+tier2_2 = Tier(4, [rnd.uniform(0,5), rnd.uniform(0,5), rnd.random(), rnd.random()], 2, [rnd.uniform(0.33,0.67), rnd.uniform(0.33,0.67)])
+tier2_3 = Tier(5, [rnd.uniform(0,5), rnd.uniform(0,5), rnd.random(), rnd.random()], 2, [rnd.uniform(0.33,0.67), rnd.uniform(0.33,0.67)])
 
 tier3_1 = Tier(6, [rnd.uniform(0,5), rnd.uniform(0,5), rnd.random(), rnd.random()], 3, [rnd.uniform(0.67,1), rnd.uniform(0,0.33)])
 tier3_2 = Tier(7, [rnd.uniform(0,5), rnd.uniform(0,5), rnd.random(), rnd.random()], 3, [rnd.uniform(0.67,1), rnd.uniform(0,0.33)])
@@ -60,13 +52,13 @@ def U_L(x_policy, y_policy):
       D = leader.distance_preference_policy(x_policy, y_policy)
       P = leader.power_total()
       S = leader.support_aggregate(tier1, tier2, tier3, x_policy, y_policy)
-      U = alpha_D * (15-D) + alpha_P * P + alpha_S * S
+      U = alpha_D * D + alpha_P * P + alpha_S * S
       return U
 
 #选择改变政策(能使个人效用更大!!)
 i = 0
 def change_policy():
-    global x_policy, y_policy
+    global x_policy, y_policy 
     u_old = U_L(x_policy, y_policy)
     N = 5 #每次只能考虑N个替代政策
     for i in range(N):
@@ -76,7 +68,13 @@ def change_policy():
       if u_new > u_old:
             x_policy = x_policy_new
             y_policy = y_policy_new
+            print("3 - change policy")
             break
+      elif i==4:
+            add = rnd.randint(0,10)
+            tiers[add].influence[1] += rnd.uniform(0,0.01)
+            print("4 - allocate r_power")
+
 
 #选择改变政策(使更贴近自己偏好)
 def policy_interest():
@@ -88,15 +86,6 @@ def policy_interest():
       if y_policy[0] + y <= 10:
             y_policy[0] += y
 
-def allocate_r_power():
-      leader.influence[1] += rnd.uniform(0, 0.1)
-      #fire tier1，tier2，增加tier3的权力
-      fire = rnd.randint(0,5)
-      minus = rnd.uniform(0, 0.02)
-      if tiers[fire].influence[1] -minus > 0:
-            tiers[fire].influence[1] -= minus
-      add = rnd.randint(5,10)
-      tiers[add].influence[1] += rnd.uniform(0, 0.02)
       
 
 '''领导人通过启发法和理性水平来选择行为'''
@@ -106,36 +95,45 @@ def heruistics():
       random = rnd.random()
       if leader.risk == 0: #风险类型属于RAO
             for tier in tiers:
-                  if tier.influence[1]+tier.influence[0] > 1.25 : #一旦感受到威胁， 降级权力超过某个阈值的agent #只用rpower呢？？？
-                        tier_hire = tiers[rnd.randint(5,10)]
-                        leader.fire_and_hire(tier, tier_hire)            
+                  if tier.influence[0] + tier.influence[1] >= 1: 
                         trigger = 1
-                        print("fire/hire")
+                        if tier.status == 1:
+                              tier.status = 2
+                              tier.influence[0] = rnd.uniform(0.33,0.67)
+                              tier.influence[1] = rnd.uniform(0.33,0.67)
+                              print("1.1 - demote")
+                              break
+                        elif tier.status == 2:
+                              tier_hire = tiers[rnd.randint(5,10)]
+                              leader.fire_and_hire(tier, tier_hire)            
+                              print("1.2 - fire and hire")
+                              break
+                        else:
+                              minus = rnd.uniform(0,0.02)
+                              if tier.influence[1] - minus > 0:
+                                    tier.influence[1] -= minus
+                              print("1.3 - cut r_power")
+                              break
       else: #风险类型属于RTO
-            if leader.distance_preference_policy(x_policy, y_policy) > 5: #仅凭自己喜好来改变政策（如果政策离自己的喜好太远，则让政策更贴近自己的喜好） -->设置一个阈值确定什么时候需要做出改变
+            if leader.distance_preference_policy(x_policy, y_policy) > 1: #仅凭自己喜好来改变政策（如果政策离自己的喜好太远，则让政策更贴近自己的喜好） -->设置一个阈值确定什么时候需要做出改变
                   policy_interest()
                   trigger = 1
-                  print("change with interest")
+                  print("2 - change with interest")
 
       #如果启发式规则未被激活，则由理性水平进行决定 
       if trigger == 0:
             if leader.rationality == 1: #如果理性水平高，则会考虑能使效用更大化的替代政策
-                  if random > 0.5:
-                        change_policy()                                           
-                        print("change policy to maximize utility")
-                  else:  #或者重新分配r_power来使自己的效用增加
-                        allocate_r_power()
-                        print("distribution of r_power")
+                  change_policy()
             else: #如果理性水平低，则随机做出一个选择
                   if random > 0.5:
-                        x_policy = [rnd.randint(0,10)]
-                        y_policy = [rnd.randint(0,10)] #随机指定一个policy，或者
-                        print("change policy randomly")
+                        x_policy = [rnd.uniform(0,10)]
+                        y_policy = [rnd.uniform(0,10)] #随机指定一个policy，或者
+                        print("5 - change policy randomly")
                   else:
                         pick1 = rnd.randint(0,5)
                         pick2 = rnd.randint(5,10) #随机挑选两个agent进行f&h操作
                         leader.fire_and_hire(tiers[pick1], tiers[pick2]) 
-                        print("fire/hire an agent")
+                        print("6 - fire/hire an agent")
                   
 '''普通agent在每个时间步长可以发生的行为'''
 #计算自己当前的效用，以及对当前政策的支持
@@ -161,10 +159,11 @@ def run(steps):
       y_no = []
       for i in range(steps):
             print("run " + str(i))
+            print("(", x_policy,", ", y_policy,")")
             classify()
             heruistics()
-            # shock = rnd.randint(0,9)
-            # tiers[shock].shock()
+            shock = rnd.randint(0,9)
+            tiers[shock].shock()
             x_leader, y_leader = leader.preference[0], leader.preference[1]
             x_tier1 = [tier.preference[0] for tier in tier1]
             y_tier1 = [tier.preference[1] for tier in tier1]
@@ -191,8 +190,8 @@ def run(steps):
             y_policy_list.append(y_policy)
             #print(x_tier1,  y_tier1)
             #画图
-            # if(i==0 or i==100 or i==199):
-            #       power_display(x_leader, y_leader, x_tier1, y_tier1, x_tier2, y_tier2, x_tier3, y_tier3, x_policy, y_policy, x_no, y_no)
+            if(i==0 or i==100 or i==199):
+                  power_display(x_leader, y_leader, x_tier1, y_tier1, x_tier2, y_tier2, x_tier3, y_tier3, x_policy, y_policy, x_no, y_no)
                   # agent_stats(u_l, u_avg, s_all, s_tier1)
                   # utility_3D(x,y,z)
                   # utility_3D(x,y,k)
@@ -200,16 +199,16 @@ def run(steps):
             #在step 100更换领导人
             if(i==99): 
                   leader.sucession("A")
-                  #power_display(x_leader, y_leader, x_tier1, y_tier1, x_tier2, y_tier2, x_tier3, y_tier3, x_policy, y_policy, x_no, y_no)
-                  
-      
-      # print(np.mean(u_l[90:99]))
-      # print(np.mean(u_l[100:109]))
-      # print(np.mean(u_l[190:199]))
+                  power_display(x_leader, y_leader, x_tier1, y_tier1, x_tier2, y_tier2, x_tier3, y_tier3, x_policy, y_policy, x_no, y_no)
+      print(alpha_D, alpha_P, alpha_S)  
+      print(alpha_x, alpha_y)
+      print(np.mean(u_l[90:99]))
+      print(np.mean(u_l[100:109]))
+      print(np.mean(u_l[190:199]))
       print(np.mean(s_all[90:99]))
       print(np.mean(s_all[100:109]))
       print(np.mean(s_all[190:199]))
-      #画3D图
+      # 画3D图
       x,y = np.meshgrid(x_policy_list, y_policy_list)
       z,z1 = np.meshgrid(u_l,u_l)
       k, k1 = np.meshgrid(s_all, s_all)
@@ -218,6 +217,7 @@ def run(steps):
 
       s_all = [s * 0.2 for s in s_all]
       #agent_stats(u_l, s_all)
+      
 
 '''实验1-A'''
 run(200)
